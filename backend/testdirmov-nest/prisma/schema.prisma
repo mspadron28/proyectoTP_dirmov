@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model axes {
+  axis_id   String     @id @db.VarChar(10)
+  name      String     @db.VarChar(50)
+  system_id String?    @db.VarChar(10)
+  systems   systems?   @relation(fields: [system_id], references: [system_id], onUpdate: NoAction, map: "fk_system")
+  criteria  criteria[]
+}
+
+model criteria {
+  criteria_id String      @id @db.VarChar(10)
+  name        String      @db.VarChar(100)
+  axis_id     String?     @db.VarChar(10)
+  axes        axes?       @relation(fields: [axis_id], references: [axis_id], onUpdate: NoAction, map: "fk_axis")
+  questions   questions[]
+}
+
+model options {
+  option_id        String             @id @db.VarChar(10)
+  description      String             @db.VarChar(255)
+  option_type      String?            @db.VarChar(50)
+  score            Int?
+  question_options question_options[]
+}
+
+model question_options {
+  question_id String    @db.VarChar(10)
+  option_id   String    @db.VarChar(10)
+  options     options   @relation(fields: [option_id], references: [option_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_option")
+  questions   questions @relation(fields: [question_id], references: [question_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_question")
+
+  @@id([question_id, option_id])
+}
+
+model questions {
+  question_id      String             @id @db.VarChar(10)
+  description      String             @db.VarChar(255)
+  criteria_id      String?            @db.VarChar(10)
+  question_options question_options[]
+  criteria         criteria?          @relation(fields: [criteria_id], references: [criteria_id], onUpdate: NoAction, map: "fk_criteria")
+}
+
+model systems {
+  system_id String @id @db.VarChar(10)
+  name      String @db.VarChar(50)
+  axes      axes[]
+}
