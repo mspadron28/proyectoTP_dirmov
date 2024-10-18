@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgres:latest
+    container_name: dirmov_postgres_container
+    environment:
+      POSTGRES_USER: mspadron
+      POSTGRES_PASSWORD: mspadron
+      POSTGRES_DB: test_dirmov
+    ports:
+      - "5528:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
