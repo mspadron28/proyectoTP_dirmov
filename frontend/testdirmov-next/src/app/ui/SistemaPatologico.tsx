@@ -4,15 +4,7 @@ import { useEffect, useState } from "react";
 import EvaluacionTest from "../ui/EvaluacionTest";
 import { Option, Question, SystemData } from "../lib/definitions";
 
-const shuffleArray = (array: any[]) => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
-
-export default function TestPage() {
+export default function SistemaPatologico() {
   const [systemsData, setSystemsData] = useState<SystemData[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState(0); // Controla la página de preguntas actual
@@ -52,9 +44,8 @@ export default function TestPage() {
           });
         });
 
-        // Barajar las preguntas
-        const shuffledQuestions = shuffleArray(allQuestions);
-        setQuestions(shuffledQuestions);
+        // Aquí no se barajan las preguntas
+        setQuestions(allQuestions); // Se asignan las preguntas en el orden original
 
         setLoading(false);
       } catch (error) {
