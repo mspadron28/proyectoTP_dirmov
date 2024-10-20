@@ -12,17 +12,13 @@ export class SystemsService {
   async findSystemHierarchy(id: string) {
     const system = await this.prisma.systems.findUnique({
       where: { system_id: id },
-      select: {
-        name: true,  
+      include: {
         axes: {
-          select: {
-            name: true,  
+          include: {  
             criteria: {
-              select: {
-                name: true,  
+              include: { 
                 questions: {
-                  select: {
-                    description: true, 
+                  include: {
                     question_options: {
                       include: {
                         options: true
