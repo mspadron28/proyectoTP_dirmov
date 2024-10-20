@@ -1,5 +1,6 @@
 
-import { SystemData, calculateTotalEjesSistema, calculateTotalCriteriosEje, calculateTotalUnicoCriterio } from "../lib/calculosTest"; 
+import { calculateTotalEjesSistema, calculateTotalCriteriosEje, calculateTotalUnicoCriterio } from "../lib/calculosTest"; 
+import { SystemData } from "../lib/definitions";
 
 interface EvaluacionTestProps {
   systemData: SystemData;

@@ -1,46 +1,9 @@
-'use client'
+"use client";
 
 import { useEffect, useState } from "react";
 import EvaluacionTest from "../ui/EvaluacionTest";
 
-// Interfaces ajustadas para reflejar el uso de IDs como claves únicas
-interface Option {
-  option_id: string;
-  description: string;
-  option_type: string;
-  score: number;
-}
-
-interface QuestionOption {
-  question_id: string;
-  option_id: string;
-  options: Option;
-}
-
-interface Question {
-  question_id: string;
-  description: string;
-  question_options: QuestionOption[];
-  selected_option: Option | null; // Almacenamos la opción seleccionada
-}
-
-interface Criteria {
-  criteria_id: string;
-  name: string;
-  questions: Question[];
-}
-
-interface Axis {
-  axis_id: string;
-  name: string;
-  criteria: Criteria[];
-}
-
-interface SystemData {
-  system_id: string;
-  name: string;
-  axes: Axis[];
-}
+import { Option, SystemData } from "../lib/definitions";
 
 export default function TestPage() {
   const [systemData, setSystemData] = useState<SystemData | null>(null);
@@ -51,7 +14,9 @@ export default function TestPage() {
   useEffect(() => {
     const fetchTestData = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/systems/${systemId}`);
+        const response = await fetch(
+          `http://localhost:3000/systems/${systemId}`
+        );
         const data = await response.json();
         setSystemData(data);
         setLoading(false);
@@ -82,9 +47,29 @@ export default function TestPage() {
     setSystemData(updatedSystemData); // Actualiza el estado con las respuestas seleccionadas
   };
 
+  // Función para verificar si todas las preguntas están respondidas
+  const areAllQuestionsAnswered = (): boolean => {
+    if (!systemData) return false;
+
+    for (const axis of systemData.axes) {
+      for (const criteria of axis.criteria) {
+        for (const question of criteria.questions) {
+          if (!question.selected_option) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  };
+
   // Función para manejar la evaluación
   const handleEvaluation = () => {
-    setEvaluating(true); // Cambia el estado para mostrar la evaluación
+    if (areAllQuestionsAnswered()) {
+      setEvaluating(true); // Cambia el estado para mostrar la evaluación
+    } else {
+      alert("Por favor, responde todas las preguntas antes de evaluar.");
+    }
   };
 
   if (loading) {
@@ -92,7 +77,11 @@ export default function TestPage() {
   }
 
   if (!systemData) {
-    return <div className="text-center text-red-600">Error al cargar los datos del test</div>;
+    return (
+      <div className="text-center text-red-600">
+        Error al cargar los datos del test
+      </div>
+    );
   }
 
   // Si el estado `evaluating` está activado, mostramos el componente de evaluación
@@ -100,28 +89,43 @@ export default function TestPage() {
     return <EvaluacionTest systemData={systemData} />;
   }
 
-  // Renderizamos el test si aún no estamos evaluando
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-8">
       <div className="w-full max-w-3xl">
-        <h1 className="text-4xl font-bold text-black text-center mb-8">{systemData.name}</h1>
+        <h1 className="text-4xl font-bold text-black text-center mb-8">
+          {systemData.name}
+        </h1>
 
         {systemData.axes.map((axis) => (
           <div key={axis.axis_id} className="mb-12">
-            <h2 className="text-2xl font-semibold text-black mb-6 text-center">{axis.name}</h2>
+            <h2 className="text-2xl font-semibold text-black mb-6 text-center">
+              {axis.name}
+            </h2>
 
-            {axis.criteria.map((criterion) => (
-              <div key={criterion.criteria_id} className="p-6 mb-8 rounded-lg shadow-md bg-[#4c8c74] bg-opacity-20">
-                <h3 className="text-xl font-semibold text-black mb-4 text-center">{criterion.name}</h3>
+            {axis.criteria.map((criteria) => (
+              <div
+                key={criteria.criteria_id}
+                className="p-6 mb-8 rounded-lg shadow-md bg-[#4c8c74] bg-opacity-20"
+              >
+                <h3 className="text-xl font-semibold text-black mb-4 text-center">
+                  {criteria.name}
+                </h3>
 
-                {criterion.questions.map((question) => (
-                  <div key={question.question_id} className="mb-6 bg-white p-4 rounded-lg shadow">
-                    <p className="text-lg text-black mb-4 font-medium text-center">{question.description}</p>
+                {criteria.questions.map((question) => (
+                  <div
+                    key={question.question_id}
+                    className="mb-6 bg-white p-4 rounded-lg shadow"
+                  >
+                    <p className="text-lg text-black mb-4 font-medium text-center">
+                      {question.description}
+                    </p>
 
                     <div className="space-y-4 flex flex-col items-start">
                       {question.question_options
                         .slice()
-                        .sort((a, b) => b.options.option_id.localeCompare(a.options.option_id)) // Ordena por option_id de mayor a menor
+                        .sort((a, b) =>
+                          b.options.option_id.localeCompare(a.options.option_id)
+                        ) // Ordena por option_id de mayor a menor
                         .map((qOption) => (
                           <label
                             key={qOption.option_id}
@@ -132,9 +136,16 @@ export default function TestPage() {
                               name={`question_${question.question_id}`}
                               value={qOption.options.option_id}
                               className="mr-3 accent-black"
-                              onChange={() => handleOptionSelect(question.question_id, qOption.options)}
+                              onChange={() =>
+                                handleOptionSelect(
+                                  question.question_id,
+                                  qOption.options
+                                )
+                              }
                             />
-                            <span className="text-black">{qOption.options.description}</span>
+                            <span className="text-black">
+                              {qOption.options.description}
+                            </span>
                           </label>
                         ))}
                     </div>
@@ -148,7 +159,9 @@ export default function TestPage() {
         <div className="text-center">
           <button
             onClick={handleEvaluation}
-            className="px-6 py-3 bg-[#4c8c74] text-white text-lg font-medium rounded-full transition-all hover:bg-[#3b6f5b]"
+            disabled={!areAllQuestionsAnswered()} // Deshabilita el botón si no están todas las preguntas respondidas
+            className={`px-6 py-3 text-white text-lg font-medium rounded-full transition-all 
+            ${areAllQuestionsAnswered() ? 'bg-[#4c8c74] hover:bg-[#3b6f5b]' : 'bg-gray-400 cursor-not-allowed'}`}
           >
             Evaluar
           </button>

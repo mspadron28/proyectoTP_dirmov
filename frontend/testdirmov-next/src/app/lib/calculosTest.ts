@@ -1,30 +1,5 @@
 // lib/calculosTest.ts
-
-export interface Option {
-    option_id: string;
-    score: number;
-  }
-  
-  export interface Question {
-    question_id: string;
-    selected_option: Option | null; // La opción seleccionada
-  }
-  
-  export interface Criteria {
-    criteria_id: string;
-    name: string;
-    questions: Question[];
-  }
-  
-  export interface Axis {
-    axis_id: string;
-    name: string;
-    criteria: Criteria[];
-  }
-  
-  export interface SystemData {
-    axes: Axis[];
-  }
+import { Criteria, Axis, SystemData } from "./definitions";
   
   // Función para calcular el TotalUnicoCriterio
   export const calculateTotalUnicoCriterio = (criteria: Criteria): number => {
