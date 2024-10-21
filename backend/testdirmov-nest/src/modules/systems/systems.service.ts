@@ -14,14 +14,14 @@ export class SystemsService {
       where: { system_id: id },
       include: {
         axes: {
-          include: {  
+          include: {
             criteria: {
-              include: { 
+              include: {
                 questions: {
                   include: {
                     question_options: {
                       include: {
-                        options: true
+                        options: true,
                       },
                     },
                   },
@@ -32,12 +32,14 @@ export class SystemsService {
         },
       },
     });
-  
+
     if (!system) {
-      throw new NotFoundException({ message: `System id ${id} not found`, status: 404 });
+      throw new NotFoundException({
+        message: `System id ${id} not found`,
+        status: 404,
+      });
     }
-  
+
     return system;
   }
-  
 }

@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import EvaluacionTest from "../ui/EvaluacionTest";
 import { Option, Question, SystemData } from "../lib/definitions";
 
-export default function SistemaPatologico() {
+const shuffleArray = (array: any[]) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
+export default function SistemasGeneral() {
   const [systemsData, setSystemsData] = useState<SystemData[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState(0); // Controla la página de preguntas actual
@@ -17,7 +25,7 @@ export default function SistemaPatologico() {
     const fetchTestData = async () => {
       try {
         const promises = [];
-        for (let i = 1; i <= 2; i++) {
+        for (let i = 1; i <= 5; i++) {
           promises.push(
             fetch(`http://localhost:3000/systems/${i}`).then((res) =>
               res.json()
@@ -31,7 +39,8 @@ export default function SistemaPatologico() {
         );
 
         setSystemsData(validSystemsData);
-
+        // Mostrar el objeto en la consola para entender su estructura
+        console.log("SystemsData estrucutura:", validSystemsData);
         // Recopilar todas las preguntas de todos los sistemas
         const allQuestions: Question[] = [];
         validSystemsData.forEach((system: SystemData) => {
@@ -44,8 +53,9 @@ export default function SistemaPatologico() {
           });
         });
 
-        // Aquí no se barajan las preguntas
-        setQuestions(allQuestions); // Se asignan las preguntas en el orden original
+        // Barajar las preguntas
+        const shuffledQuestions = shuffleArray(allQuestions);
+        setQuestions(shuffledQuestions);
 
         setLoading(false);
       } catch (error) {
@@ -79,9 +89,9 @@ export default function SistemaPatologico() {
   // Manejador para avanzar a la siguiente página de preguntas
   const handleNextPage = () => {
     if (areCurrentQuestionsAnswered()) {
-      setError(""); 
+      setError("");
       setCurrentPage((prevPage) => prevPage + 1);
-      window.scrollTo(0, 0); 
+      window.scrollTo(0, 0);
     } else {
       setError("Por favor, responde todas las preguntas antes de continuar.");
     }
@@ -109,78 +119,69 @@ export default function SistemaPatologico() {
   const currentQuestions = questions.slice(startIndex, endIndex);
 
   return (
-    
-      <div className="w-full max-w-3xl">
-        <h1 className="text-4xl font-bold text-black text-center mb-8">
-          PATOLOGICO
-        </h1>
+    <div className="w-full max-w-3xl">
+      {/* Mostrar preguntas actuales */}
+      {currentQuestions.map((question) => (
+        <div
+          key={question.question_id}
+          className="mb-6 bg-white p-4 rounded-lg shadow"
+        >
+          <p className="text-lg text-black mb-4 font-medium text-center">
+            {question.description}
+          </p>
 
-        {/* Mostrar preguntas actuales */}
-        {currentQuestions.map((question) => (
-          <div
-            key={question.question_id}
-            className="mb-6 bg-white p-4 rounded-lg shadow"
-          >
-            <p className="text-lg text-black mb-4 font-medium text-center">
-              {question.description}
-            </p>
-
-            <div className="space-y-4 flex flex-col items-start">
-              {question.question_options
-                .slice()
-                .sort((a, b) =>
-                  b.options.option_id.localeCompare(a.options.option_id)
-                )
-                .map((qOption) => (
-                  <label
-                    key={qOption.option_id}
-                    className="w-full flex items-center bg-[#4c8c74] bg-opacity-30 p-3 rounded-lg hover:bg-opacity-40 transition"
-                  >
-                    <input
-                      type="radio"
-                      name={`question_${question.question_id}`}
-                      value={qOption.options.option_id}
-                      className="mr-3 accent-black"
-                      onChange={() =>
-                        handleOptionSelect(
-                          question.question_id,
-                          qOption.options
-                        )
-                      }
-                      checked={
-                        question.selected_option?.option_id ===
-                        qOption.options.option_id
-                      }
-                    />
-                    <span className="text-black">
-                      {qOption.options.description}
-                    </span>
-                  </label>
-                ))}
-            </div>
+          <div className="space-y-4 flex flex-col items-start">
+            {question.question_options
+              .slice()
+              .sort((a, b) =>
+                b.options.option_id.localeCompare(a.options.option_id)
+              )
+              .map((qOption) => (
+                <label
+                  key={qOption.option_id}
+                  className="w-full flex items-center bg-[#4c8c74] bg-opacity-30 p-3 rounded-lg hover:bg-opacity-40 transition"
+                >
+                  <input
+                    type="radio"
+                    name={`question_${question.question_id}`}
+                    value={qOption.options.option_id}
+                    className="mr-3 accent-black"
+                    onChange={() =>
+                      handleOptionSelect(question.question_id, qOption.options)
+                    }
+                    checked={
+                      question.selected_option?.option_id ===
+                      qOption.options.option_id
+                    }
+                  />
+                  <span className="text-black">
+                    {qOption.options.description}
+                  </span>
+                </label>
+              ))}
           </div>
-        ))}
-        {/* Mostrar mensaje de error si no ha respondido todas las preguntas */}
-        {error && <div className="text-center text-red-600 mb-4">{error}</div>}
-        <div className="text-center">
-          {/* Botón de siguiente o evaluar dependiendo si es la última página */}
-          {endIndex >= questions.length ? (
-            <button
-              onClick={handleEvaluation}
-              className="px-6 py-3 text-white bg-[#4c8c74] hover:bg-[#3b6f5b] text-lg font-medium rounded-full transition-all"
-            >
-              Evaluar
-            </button>
-          ) : (
-            <button
-              onClick={handleNextPage}
-              className="px-6 py-3 text-white bg-blue-600 hover:bg-blue-500 text-lg font-medium rounded-full transition-all"
-            >
-              Siguiente
-            </button>
-          )}
         </div>
+      ))}
+      {/* Mostrar mensaje de error si no ha respondido todas las preguntas */}
+      {error && <div className="text-center text-red-600 mb-4">{error}</div>}
+      <div className="text-center">
+        {/* Botón de siguiente o evaluar dependiendo si es la última página */}
+        {endIndex >= questions.length ? (
+          <button
+            onClick={handleEvaluation}
+            className="px-6 py-3 text-white bg-[#4c8c74] hover:bg-[#3b6f5b] text-lg font-medium rounded-full transition-all"
+          >
+            Evaluar
+          </button>
+        ) : (
+          <button
+            onClick={handleNextPage}
+            className="px-6 py-3 text-white bg-blue-600 hover:bg-blue-500 text-lg font-medium rounded-full transition-all"
+          >
+            Siguiente
+          </button>
+        )}
       </div>
-    
+    </div>
   );
 }
